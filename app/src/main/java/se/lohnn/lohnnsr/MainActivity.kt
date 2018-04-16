@@ -4,6 +4,7 @@ import android.arch.lifecycle.Observer
 import android.databinding.DataBindingUtil
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
+import android.support.v7.widget.LinearLayoutManager
 import se.lohnn.lohnnsr.data.SRLiveData
 import se.lohnn.lohnnsr.databinding.ActivityMainBinding
 import timber.log.Timber
@@ -15,9 +16,12 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         val binding: ActivityMainBinding = DataBindingUtil.setContentView(this, R.layout.activity_main)
 
+        binding.rv.layoutManager = LinearLayoutManager(this)
+        val adapter = SRAdapter()
+        binding.rv.adapter = adapter
+
         SRLiveData.observe(this, Observer { data ->
-            binding.setVariable(BR.data, data)
-            binding.executePendingBindings()
+            adapter.updateItems(data?.programs ?: emptyList())
             Timber.d(data.toString())
         })
     }

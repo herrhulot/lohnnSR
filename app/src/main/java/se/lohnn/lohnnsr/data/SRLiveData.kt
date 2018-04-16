@@ -4,9 +4,7 @@ import android.arch.lifecycle.LiveData
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
-import io.reactivex.schedulers.Schedulers
 import okhttp3.OkHttpClient
-import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import timber.log.Timber
@@ -20,9 +18,6 @@ object SRLiveData : LiveData<SRData>() {
 
     val api: SRApi by lazy {
         val builder = OkHttpClient.Builder()
-        val loggingInterceptor = HttpLoggingInterceptor(HttpLoggingInterceptor.Logger { message -> Timber.d(message) })
-        loggingInterceptor.level = HttpLoggingInterceptor.Level.BODY
-        builder.addInterceptor(loggingInterceptor)
         val retrofit = Retrofit.Builder()
                 .client(builder.build())
                 .baseUrl(BASE_URL)
@@ -55,5 +50,3 @@ object SRLiveData : LiveData<SRData>() {
         Timber.d("Deactivating API")
     }
 }
-
-data class SRData(val copyright: String)
