@@ -4,24 +4,46 @@ import android.arch.lifecycle.LiveData
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
+import io.reactivex.schedulers.Schedulers
+import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
 import timber.log.Timber
 import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicInteger
 
 object SRLiveData : LiveData<SRData>() {
-    private val INTERVAL = 60L
+    private const val INTERVAL = 60L
+    private const val BASE_URL = "http://api.sr.se/"
+
     private var intervalSub: Disposable? = null
 
-    private val tjosan = AtomicInteger(0)
+    val api: SRApi by lazy {
+        val builder = OkHttpClient.Builder()
+        val loggingInterceptor = HttpLoggingInterceptor(HttpLoggingInterceptor.Logger { message -> Timber.d(message) })
+        loggingInterceptor.level = HttpLoggingInterceptor.Level.BODY
+        builder.addInterceptor(loggingInterceptor)
+        val retrofit = Retrofit.Builder()
+                .client(builder.build())
+                .baseUrl(BASE_URL)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build()
+
+        retrofit.create(SRApi::class.java)
+    }
 
     override fun onActive() {
         //Should not be needed, but w/e
-        intervalSub?.dispose()
         intervalSub = Observable.interval(0, INTERVAL, TimeUnit.SECONDS)
-                .observeOn(AndroidSchedulers.mainThread())
+                .map {
+                    api.programs().execute()
+                }
                 .distinct()
-                .subscribe({
-                    value = SRData("Yoyoyo ${tjosan.getAndIncrement()}")
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({ response ->
+                    if (response.isSuccessful) {
+                        value = response.body()
+                    }
                 }, {
                     Timber.e(it, "Something went wrong when trying to get SR data")
                 })
@@ -35,4 +57,4 @@ object SRLiveData : LiveData<SRData>() {
     }
 }
 
-data class SRData(val name: String)
+data class SRData(val copyright: String)
