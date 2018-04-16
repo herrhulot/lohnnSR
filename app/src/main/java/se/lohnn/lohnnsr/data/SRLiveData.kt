@@ -33,7 +33,6 @@ object SRLiveData : LiveData<SRData>() {
     }
 
     override fun onActive() {
-        //Should not be needed, but w/e
         intervalSub = Observable.interval(0, INTERVAL, TimeUnit.SECONDS)
                 .map {
                     api.programs().execute()
