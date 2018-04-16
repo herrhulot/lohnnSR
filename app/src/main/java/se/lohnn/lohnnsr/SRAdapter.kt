@@ -1,6 +1,7 @@
 package se.lohnn.lohnnsr
 
 import android.databinding.DataBindingUtil
+import android.support.v7.util.DiffUtil
 import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.ViewGroup
@@ -27,8 +28,19 @@ class SRAdapter : RecyclerView.Adapter<SRAdapter.ViewHolder>() {
     }
 
     fun updateItems(newList: List<Program>) {
-        items = newList
-        notifyDataSetChanged()
+        DiffUtil.calculateDiff(object : DiffUtil.Callback() {
+            override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int) =
+                    items[oldItemPosition].name == newList[newItemPosition].name
+
+            override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int) =
+                    items[oldItemPosition] == newList[newItemPosition]
+
+            override fun getOldListSize() = items.size
+            override fun getNewListSize() = newList.size
+        }).also {
+            items = newList
+            it.dispatchUpdatesTo(this)
+        }
     }
 
     class ViewHolder(val binding: ProgramItemBinding) : RecyclerView.ViewHolder(binding.root)
