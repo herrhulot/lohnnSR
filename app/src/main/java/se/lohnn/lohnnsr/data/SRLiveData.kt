@@ -11,9 +11,10 @@ import timber.log.Timber
 import java.util.concurrent.TimeUnit
 
 object SRLiveData : LiveData<SRData>() {
-    private const val INTERVAL = 60L
+    private val INTERVAL = TimeUnit.MILLISECONDS.convert(60, TimeUnit.SECONDS)
     private const val BASE_URL = "http://api.sr.se/"
 
+    private var lastUpdated = 0L
     private var intervalSub: Disposable? = null
 
     val api: SRApi by lazy {
@@ -28,7 +29,8 @@ object SRLiveData : LiveData<SRData>() {
     }
 
     override fun onActive() {
-        intervalSub = Observable.interval(0, INTERVAL, TimeUnit.SECONDS)
+        val initialDelay = Math.max(0, lastUpdated + TimeUnit.MILLISECONDS.convert(60, TimeUnit.SECONDS) - System.currentTimeMillis())
+        intervalSub = Observable.interval(initialDelay, INTERVAL, TimeUnit.MILLISECONDS)
                 .map {
                     api.programs().execute()
                 }
@@ -36,6 +38,7 @@ object SRLiveData : LiveData<SRData>() {
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({ response ->
                     if (response.isSuccessful) {
+                        lastUpdated = System.currentTimeMillis()
                         value = response.body()
                     }
                 }, {
