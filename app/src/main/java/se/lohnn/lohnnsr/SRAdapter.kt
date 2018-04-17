@@ -8,8 +8,7 @@ import android.view.ViewGroup
 import se.lohnn.lohnnsr.data.Program
 import se.lohnn.lohnnsr.databinding.ProgramItemBinding
 
-
-class SRAdapter : RecyclerView.Adapter<SRAdapter.ViewHolder>() {
+class SRAdapter(private val clickListener: (program: Program) -> Unit) : RecyclerView.Adapter<SRAdapter.ViewHolder>() {
     private var items = listOf<Program>()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -23,8 +22,12 @@ class SRAdapter : RecyclerView.Adapter<SRAdapter.ViewHolder>() {
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+        val program = items[position]
         holder.binding.setVariable(BR.data, items[position])
         holder.binding.executePendingBindings()
+        holder.binding.root.setOnClickListener {
+            clickListener(program)
+        }
     }
 
     fun updateItems(newList: List<Program>) {
