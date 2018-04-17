@@ -23,8 +23,7 @@ class SRAdapter(private val clickListener: (program: Program) -> Unit) : Recycle
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val program = items[position]
-        holder.binding.setVariable(BR.data, items[position])
-        holder.binding.executePendingBindings()
+        holder.binding.data = items[position]
         holder.binding.root.setOnClickListener {
             clickListener(program)
         }
